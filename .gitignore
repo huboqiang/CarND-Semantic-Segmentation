@@ -101,7 +101,9 @@ ENV/
 .mypy_cache/
 
 RUNS/
+runs/
 
 # localhost
 localhost*
 :*
+models
