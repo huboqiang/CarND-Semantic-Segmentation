@@ -56,8 +56,20 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :return: The Tensor for the last layer of output
     """
     # TODO: Implement function
-    return None
-#tests.test_layers(layers)
+    conv7_1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, padding='same')
+    conv7_2x  = tf.layers.conv2d_transpose(conv7_1x1, num_classes, 4, strides=2, padding='same')
+
+    conv4_1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, padding='same')
+    conv_merge1 = tf.add(conv4_1x1, conv7_2x)
+    conv4_2x  = tf.layers.conv2d_transpose(conv_merge1, num_classes, 4, strides=2, padding='same')
+
+
+    conv3_1x1 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, padding='same')
+    conv_merge2 = tf.add(conv3_1x1, conv4_2x)
+    conv3_8x  = tf.layers.conv2d_transpose(conv_merge2, num_classes, 16, strides=8, padding='same')
+
+    return conv3_8x
+tests.test_layers(layers)
 
 
 def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
