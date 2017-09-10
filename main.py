@@ -109,8 +109,19 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     :param learning_rate: TF Placeholder for learning rate
     """
     # TODO: Implement function
-    pass
-#tests.test_train_nn(train_nn)
+    sess.run(tf.global_variables_initializer())
+    for i in range(epochs):
+        print("Epoch %d" % i)
+        for batch_image,batch_label in get_batches_fn(batch_size):
+            sess.run([train_op, cross_entropy_loss],
+                     feed_dict={
+                        input_image: batch_image,
+                        correct_label: batch_label,
+                        learning_rate : 0.001,
+                        keep_prob : 0.5
+                     })
+
+tests.test_train_nn(train_nn)
 
 
 def run():
