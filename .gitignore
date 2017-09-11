@@ -104,6 +104,8 @@ RUNS/
 runs/
 
 # localhost
+.gitignore
+logs
+models
 localhost*
 :*
-models
