@@ -56,18 +56,30 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :return: The Tensor for the last layer of output
     """
     # TODO: Implement function
-    conv7_1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, padding='same')
-    conv7_2x  = tf.layers.conv2d_transpose(conv7_1x1, num_classes, 4, strides=2, padding='same')
+    with tf.name_scope("32xUpsampled") as scope:
+        conv7_1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1,
+                                        padding='same', name="32x_1x1_conv")
+        conv7_2x  = tf.layers.conv2d_transpose(conv7_1x1, num_classes, 4,
+                                        strides=2, padding='same', name="32x_conv_trans_upsample")
 
-    conv4_1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, padding='same')
-    conv_merge1 = tf.add(conv4_1x1, conv7_2x)
-    conv4_2x  = tf.layers.conv2d_transpose(conv_merge1, num_classes, 4, strides=2, padding='same')
+    with tf.name_scope("16xUpsampled") as scope:
+        conv4_1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1,
+                                        padding='same', name="16x_1x1_conv")
+        conv_merge1 = tf.add(conv4_1x1, conv7_2x, name="16x_combined_with_skip")
+        conv4_2x  = tf.layers.conv2d_transpose(conv_merge1, num_classes, 4,
+                                        strides=2, padding='same', name="16x_conv_trans_upsample")
 
+    with tf.name_scope("8xUpsampled") as scope:
+        conv3_1x1 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1,
+                                        padding='same', name="8x_1x1_conv")
+        conv_merge2 = tf.add(conv3_1x1, conv4_2x, name="8x_combined_with_skip")
+        conv3_8x  = tf.layers.conv2d_transpose(conv_merge2, num_classes, 16,
+                                        strides=8, padding='same', name="8x_conv_trans_upsample")
 
-    conv3_1x1 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, padding='same')
-    conv_merge2 = tf.add(conv3_1x1, conv4_2x)
-    conv3_8x  = tf.layers.conv2d_transpose(conv_merge2, num_classes, 16, strides=8, padding='same')
-
+    conv_image_0 = tf.slice(conv3_8x, [0,0,0,0], [-1,-1,-1,1])
+    #conv_image_1 = tf.slice(conv3_8x, [0,0,0,1], [-1,-1,-1,2])
+    tf.summary.image("conv3_8x_results_0", conv_image_0)
+    #tf.summary.image("conv3_8x_results_1", conv_image_1)
     return conv3_8x
 tests.test_layers(layers)
 
@@ -82,13 +94,18 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     :return: Tuple of (logits, train_op, cross_entropy_loss)
     """
     # TODO: Implement function
-    pred_label = tf.reshape(nn_last_layer, [-1, num_classes])
-    true_label = tf.reshape(correct_label, [-1, num_classes])
+    pred_label = tf.reshape(nn_last_layer, [-1, num_classes], name="predicted_label")
+    true_label = tf.reshape(correct_label, [-1, num_classes], name="true_label")
     # sum(y_true_i * log(y_pred_i))
-    entropy_val = tf.nn.softmax_cross_entropy_with_logits(labels=true_label, logits=pred_label)
-    cross_entropy_loss = tf.reduce_sum(entropy_val)
-    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-    training_op = optimizer.minimize(cross_entropy_loss)
+
+    with tf.name_scope("cross_entropy_loss"):
+        entropy_val = tf.nn.softmax_cross_entropy_with_logits(labels=true_label, logits=pred_label)
+        cross_entropy_loss = tf.reduce_sum(entropy_val)
+
+    with tf.name_scope("train"):
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+        training_op = optimizer.minimize(cross_entropy_loss)
+
     return pred_label, training_op, cross_entropy_loss
 tests.test_optimize(optimize)
 
@@ -112,22 +129,35 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     #save training results for every eproch
     saver = tf.train.Saver()
     model_dir = './models'
+    log_dir = "./logs"
     if not os.path.isdir(model_dir):
         os.mkdir(model_dir)
 
+    if not os.path.isdir(log_dir):
+        os.mkdir(log_dir)
+
+    summary_writer = tf.summary.FileWriter(log_dir, graph=tf.get_default_graph())
+
     sess.run(tf.global_variables_initializer())
+    tf.summary.scalar("loss", cross_entropy_loss)
+    merged_summary_op = tf.summary.merge_all()
+
+    global_iteration_idx = 0
     for i in range(epochs):
         print("Epoch %d" % i)
         ii = 0
         for batch_image,batch_label in get_batches_fn(batch_size):
             ii += 1
-            train_op_, cross_entropy_loss_ = sess.run([train_op, cross_entropy_loss],
+            global_iteration_idx += 1
+            train_op_, cross_entropy_loss_,summary = sess.run(
+                     [train_op, cross_entropy_loss, merged_summary_op],
                      feed_dict={
                         input_image: batch_image,
                         correct_label: batch_label,
                         learning_rate : 0.001,
                         keep_prob : 0.5
             })
+            summary_writer.add_summary(summary, global_iteration_idx)
             print("Iteration %d, loss = %1.5f" % (ii, cross_entropy_loss_))
 
         # Save the model every eproch
