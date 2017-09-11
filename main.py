@@ -134,8 +134,8 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     # TODO: Implement function
     #save training results for every eproch
     saver = tf.train.Saver()
-    model_dir = './models_l2_norm'
-    log_dir = "./logs_l2_norm"
+    model_dir = './models_l2_norm_lr00001_e100'
+    log_dir = "./logs_l2_norm_lr00001_e100"
     if not os.path.isdir(model_dir):
         os.mkdir(model_dir)
 
@@ -160,14 +160,17 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                      feed_dict={
                         input_image: batch_image,
                         correct_label: batch_label,
-                        learning_rate : 0.001,
+                        learning_rate : 0.0001,
                         keep_prob : 0.5
             })
             summary_writer.add_summary(summary, global_iteration_idx)
             print("Iteration %d, loss = %1.5f" % (ii, cross_entropy_loss_))
 
         # Save the model every eproch
-        saver.save(sess, '%s/eproch_%d_loss_%1.4f' % (model_dir, i, cross_entropy_loss_))
+        if (i>0) and (i%10 == 0):
+            tf.train.write_graph(sess.graph_def, model_dir,
+                        'eproch_%d_loss_%1.4f' % (i, cross_entropy_loss_), as_text=False)
+            saver.save(sess, '%s/eproch_%d_loss_%1.4f' % (model_dir, i, cross_entropy_loss_))
 
 
 #tests.test_train_nn(train_nn)
@@ -194,7 +197,7 @@ def run():
         # Create function to get batches
         get_batches_fn = helper.gen_batch_function(os.path.join(data_dir, 'data_road/training'), image_shape)
 
-        epochs = 50
+        epochs = 100
         batch_size = 16
         correct_label = tf.placeholder(tf.int32, [None, None, None, num_classes])
         learning_rate = tf.placeholder(tf.float32)
