@@ -19,3 +19,4 @@ dependencies:
         - keras==2.0.4
         - pydot==1.2.3
         - graphviz==0.7.1
+        - moviepy=0.2.3.2
