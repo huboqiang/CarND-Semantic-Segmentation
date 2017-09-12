@@ -108,4 +108,6 @@ runs/
 logs*
 models*
 localhost*
+*mp4
 :*
+freezed_model/
