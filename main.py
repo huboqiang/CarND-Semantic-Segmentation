@@ -59,28 +59,34 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     with tf.name_scope("32xUpsampled") as scope:
         conv7_1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1,
                                         padding='same', name="32x_1x1_conv",
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+                                        initializer=tf.contrib.layers.xavier_initializer())
         conv7_2x  = tf.layers.conv2d_transpose(conv7_1x1, num_classes, 4,
                                         strides=2, padding='same', name="32x_conv_trans_upsample",
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+                                        initializer=tf.contrib.layers.xavier_initializer())
 
     with tf.name_scope("16xUpsampled") as scope:
         conv4_1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1,
                                         padding='same', name="16x_1x1_conv",
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+                                        initializer=tf.contrib.layers.xavier_initializer())
         conv_merge1 = tf.add(conv4_1x1, conv7_2x, name="16x_combined_with_skip")
         conv4_2x  = tf.layers.conv2d_transpose(conv_merge1, num_classes, 4,
                                         strides=2, padding='same', name="16x_conv_trans_upsample",
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+                                        initializer=tf.contrib.layers.xavier_initializer())
 
     with tf.name_scope("8xUpsampled") as scope:
         conv3_1x1 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1,
                                         padding='same', name="8x_1x1_conv",
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+                                        initializer=tf.contrib.layers.xavier_initializer())
         conv_merge2 = tf.add(conv3_1x1, conv4_2x, name="8x_combined_with_skip")
         conv3_8x  = tf.layers.conv2d_transpose(conv_merge2, num_classes, 16,
                                         strides=8, padding='same', name="8x_conv_trans_upsample",
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+                                        initializer=tf.contrib.layers.xavier_initializer())
 
     conv_image_0 = tf.slice(conv3_8x, [0,0,0,0], [-1,-1,-1,1])
     #conv_image_1 = tf.slice(conv3_8x, [0,0,0,1], [-1,-1,-1,2])
