@@ -175,8 +175,8 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
         # Save the model every eproch
         if (i>0) and (i%10 == 0):
             tf.train.write_graph(sess.graph_def, model_dir,
-                        'eproch_%d_loss_%1.4f' % (i, cross_entropy_loss_), as_text=False)
-            saver.save(sess, '%s/eproch_%d_loss_%1.4f' % (model_dir, i, cross_entropy_loss_))
+                        'eproch_%d_loss' % (i, cross_entropy_loss_), as_text=False)
+            saver.save(sess, '%s/eproch_%d_loss' % (model_dir, i, cross_entropy_loss_))
 
 
 #tests.test_train_nn(train_nn)
