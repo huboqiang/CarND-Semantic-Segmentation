@@ -140,8 +140,8 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     # TODO: Implement function
     #save training results for every eproch
     saver = tf.train.Saver()
-    model_dir = './models_l2_norm_lr00001_e100'
-    log_dir = "./logs_l2_norm_lr00001_e100"
+    model_dir = './models_l2_norm_lr00001_e10_batch2'
+    log_dir = "./logs_l2_norm_lr00001_e10_batch2"
     if not os.path.isdir(model_dir):
         os.mkdir(model_dir)
 
@@ -203,8 +203,8 @@ def run():
         # Create function to get batches
         get_batches_fn = helper.gen_batch_function(os.path.join(data_dir, 'data_road/training'), image_shape)
 
-        epochs = 100
-        batch_size = 16
+        epochs = 10
+        batch_size = 2
         correct_label = tf.placeholder(tf.int32, [None, None, None, num_classes])
         learning_rate = tf.placeholder(tf.float32)
 
