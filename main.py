@@ -21,7 +21,7 @@ else:
 
 g_lr = 1e-4
 g_l2 = 1e-3
-g_batch_size = 2
+g_batch_size = 1
 
 if len(sys.argv) == 4:
     print("Using argv %s" % (" ".join(sys.argv)))
