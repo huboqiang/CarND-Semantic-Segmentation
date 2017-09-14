@@ -19,7 +19,7 @@ else:
 
 
 
-g_lr = 1e-3
+g_lr = 1e-4
 g_l2 = 1e-3
 g_batch_size = 2
 

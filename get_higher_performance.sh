@@ -2,20 +2,21 @@ mkdir -p ./freezed_model
 
 # Freeze graphs
 python ~/miniconda3/envs/carnd-term3/lib/python3.5/site-packages/tensorflow/python/tools/freeze_graph.py \
---input_graph=./models_l2_norm_lr00001_e100/eproch_90_loss_7867.2935 \
---input_checkpoint=./models_l2_norm_lr00001_e100/eproch_90_loss_7867.2935 \
+--input_graph=./models_l2_norm_lr_1.00e-04_l2_1.00e-03_e10_batch_1/eproch_9_loss \
+--input_checkpoint=./models_l2_norm_lr_1.00e-04_l2_1.00e-03_e10_batch_1/eproch_9_loss \
 --input_binary=true \
 --output_graph=./freezed_model/frozen_graph.pb \
 --output_node_names=predicted_label
 
+
 python freezed_model/graph_utils.py
 
 python /home/huboqiang/miniconda3/envs/carnd-term3/lib/python3.5/site-packages/tensorflow/python/tools/optimize_for_inference.py \
---input=frozen_graph.pb \
---output=optimized_graph.pb \
+--input=./freezed_model/frozen_graph.pb \
+--output=./freezed_model/optimized_graph.pb \
 --frozen_graph=True \
 --input_names=image_input \
---output_names=predicted_label                              
+--output_names=predicted_label
 
 
 
@@ -50,6 +51,3 @@ quantize_weights
 quantize_nodes
 strip_unused_nodes
 sort_by_execution_order'
-
-
-cd CarND-Semantic-Segmentation
