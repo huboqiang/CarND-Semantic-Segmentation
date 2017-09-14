@@ -99,7 +99,7 @@ A solution that is close to best would label at least 80% of the road and label 
 
 Some examples:
 
-![](./runs/1505304417.164329/um_000003.png)
-![](./runs/1505304417.164329/um_000032.png)
-![](./runs/1505304417.164329/um_000061.png)
-![](./runs/1505304417.164329/umm_000090.png)
+![](./runs/lr_1e4_l2_1e3_batch_1//um_000003.png)
+![](./runs/lr_1e4_l2_1e3_batch_1//um_000032.png)
+![](./runs/lr_1e4_l2_1e3_batch_1//um_000061.png)
+![](./runs/lr_1e4_l2_1e3_batch_1//umm_000090.png)
