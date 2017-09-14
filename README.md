@@ -80,24 +80,16 @@ On average, the model decreases loss over time.
 
 ![](./cross_entropy_loss.png)
 
+On average, the model decreases loss over time in all trials.
 The detailed explanation for the three lines were described in the next section.
 
 #### Does the project use reasonable hyperparameters?
 
 The number of epoch and batch size are set to a reasonable number.
 
-I tried three groups of hyperparameters for the training process of this project:
+A grid-search strategy were used to find the best hyperparameters. I tested `learning_rate={1e-3,1e-4,1e-5}`, `l2_regularizer={1e-1,1e-2,1e-3}` and `batch_size={1,2}`, which results into 18 conbinations.
 
-name | parameter
----|---
-name1 | eproch=50,learning_rate=0.001,no regularzation
-name2 | eproch=50,learning_rate=0.001,l2-regularzation=0.001
-name3 | eproch=100,learning_rate=0.0001,l2-regularzation=0.001
-
-In name3, as the low `learning_rate` would result in a slower decreasing of the loss function, more eproches were given in this case.
-
-Lastly, as I used a 12GB GPU for training, `batch_size` were used as 16 and the memory-size is 11G in this case, which would make the best use of the GPU resource.
-
+I checked the tensorborad results for these parameters, found when `lr=1e-4, l2=1e-3, batch_size=1, eproch=10`, the model would get in the lowest smoothed loss value in condition of a smooth factor of 0.6.
 
 #### Does the project correctly label the road?
 
@@ -107,12 +99,7 @@ A solution that is close to best would label at least 80% of the road and label 
 
 Some examples:
 
-![](./runs/l2_norm_lr00001_e100/eproch_90_cutoff_0.7/um_000003.png)
-![](./runs/l2_norm_lr00001_e100/eproch_90_cutoff_0.7/um_000044.png)
-![](./runs/l2_norm_lr00001_e100/eproch_90_cutoff_0.7/um_000061.png)
-![](./runs/l2_norm_lr00001_e100/eproch_90_cutoff_0.7/umm_000015.png)
-
-Also, a video of udacity term1 project 4 were also used to test the model. See in this link:
-
-- Youtube link[https://youtu.be/eGrev0uLS4k](https://youtu.be/eGrev0uLS4k)
-- 腾讯视频链接[https://v.qq.com/x/page/o0549wr3w3e.html](https://v.qq.com/x/page/o0549wr3w3e.html)
+![](./runs/1505304417.164329/um_000003.png)
+![](./runs/1505304417.164329/um_000032.png)
+![](./runs/1505304417.164329/um_000061.png)
+![](./runs/1505304417.164329/umm_000090.png)
