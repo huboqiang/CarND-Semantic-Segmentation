@@ -4,7 +4,7 @@ import helper
 import warnings
 from distutils.version import LooseVersion
 import project_tests as tests
-
+import sys
 
 # Check TensorFlow Version
 assert LooseVersion(tf.__version__) >= LooseVersion('1.0'), 'Please use TensorFlow version 1.0 or newer.  You are using {}'.format(tf.__version__)
@@ -15,6 +15,19 @@ if not tf.test.gpu_device_name():
     warnings.warn('No GPU found. Please use a GPU to train your neural network.')
 else:
     print('Default GPU Device: {}'.format(tf.test.gpu_device_name()))
+
+
+
+
+g_lr = 1e-3
+g_l2 = 1e-3
+g_batch_size = 2
+
+if len(sys.argv) == 4:
+    print("Using argv %s" % (" ".join(sys.argv)))
+    g_lr = float(sys.argv[1])
+    g_l2 = float(sys.argv[2])
+    g_batch_size = int(sys.argv[3])
 
 
 def load_vgg(sess, vgg_path):
@@ -59,34 +72,34 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     with tf.name_scope("32xUpsampled") as scope:
         conv7_1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1,
                                         padding='same', name="32x_1x1_conv",
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
-                                        initializer=tf.contrib.layers.xavier_initializer())
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(g_l2),
+                                        kernel_initializer=tf.contrib.layers.xavier_initializer())
         conv7_2x  = tf.layers.conv2d_transpose(conv7_1x1, num_classes, 4,
                                         strides=2, padding='same', name="32x_conv_trans_upsample",
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
-                                        initializer=tf.contrib.layers.xavier_initializer())
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(g_l2),
+                                        kernel_initializer=tf.contrib.layers.xavier_initializer())
 
     with tf.name_scope("16xUpsampled") as scope:
         conv4_1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1,
                                         padding='same', name="16x_1x1_conv",
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
-                                        initializer=tf.contrib.layers.xavier_initializer())
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(g_l2),
+                                        kernel_initializer=tf.contrib.layers.xavier_initializer())
         conv_merge1 = tf.add(conv4_1x1, conv7_2x, name="16x_combined_with_skip")
         conv4_2x  = tf.layers.conv2d_transpose(conv_merge1, num_classes, 4,
                                         strides=2, padding='same', name="16x_conv_trans_upsample",
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
-                                        initializer=tf.contrib.layers.xavier_initializer())
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(g_l2),
+                                        kernel_initializer=tf.contrib.layers.xavier_initializer())
 
     with tf.name_scope("8xUpsampled") as scope:
         conv3_1x1 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1,
                                         padding='same', name="8x_1x1_conv",
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
-                                        initializer=tf.contrib.layers.xavier_initializer())
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(g_l2),
+                                        kernel_initializer=tf.contrib.layers.xavier_initializer())
         conv_merge2 = tf.add(conv3_1x1, conv4_2x, name="8x_combined_with_skip")
         conv3_8x  = tf.layers.conv2d_transpose(conv_merge2, num_classes, 16,
                                         strides=8, padding='same', name="8x_conv_trans_upsample",
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
-                                        initializer=tf.contrib.layers.xavier_initializer())
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(g_l2),
+                                        kernel_initializer=tf.contrib.layers.xavier_initializer())
 
     conv_image_0 = tf.slice(conv3_8x, [0,0,0,0], [-1,-1,-1,1])
     #conv_image_1 = tf.slice(conv3_8x, [0,0,0,1], [-1,-1,-1,2])
@@ -140,8 +153,8 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     # TODO: Implement function
     #save training results for every eproch
     saver = tf.train.Saver()
-    model_dir = './models_l2_norm_lr00001_e10_batch2'
-    log_dir = "./logs_l2_norm_lr00001_e10_batch2"
+    model_dir = './models_l2_norm_lr_%1.2e_l2_%1.2e_e10_batch_%d' % (g_lr, g_l2, g_batch_size)
+    log_dir   = "./logs_l2_norm_lr_%1.2e_l2_%1.2e_e10_batch_%d"  % (g_lr, g_l2, g_batch_size)
     if not os.path.isdir(model_dir):
         os.mkdir(model_dir)
 
@@ -166,17 +179,16 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                      feed_dict={
                         input_image: batch_image,
                         correct_label: batch_label,
-                        learning_rate : 0.0001,
+                        learning_rate : g_lr,
                         keep_prob : 0.5
             })
             summary_writer.add_summary(summary, global_iteration_idx)
             print("Iteration %d, loss = %1.5f" % (ii, cross_entropy_loss_))
 
         # Save the model every eproch
-        if (i>0) and (i%10 == 0):
-            tf.train.write_graph(sess.graph_def, model_dir,
-                        'eproch_%d_loss' % (i, cross_entropy_loss_), as_text=False)
-            saver.save(sess, '%s/eproch_%d_loss' % (model_dir, i, cross_entropy_loss_))
+        tf.train.write_graph(sess.graph_def, model_dir,
+                        'eproch_%d_loss' % (i), as_text=False)
+        saver.save(sess, '%s/eproch_%d_loss' % (model_dir, i))
 
 
 #tests.test_train_nn(train_nn)
@@ -204,7 +216,7 @@ def run():
         get_batches_fn = helper.gen_batch_function(os.path.join(data_dir, 'data_road/training'), image_shape)
 
         epochs = 10
-        batch_size = 2
+        batch_size = g_batch_size
         correct_label = tf.placeholder(tf.int32, [None, None, None, num_classes])
         learning_rate = tf.placeholder(tf.float32)
 
