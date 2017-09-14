@@ -1,8 +1,8 @@
-#python main.py 1e-3 1e-1 1 # run1
+python main.py 1e-3 1e-1 1 # run1
 python main.py 1e-3 1e-1 2 # 1505302970.8772528/
-#python main.py 1e-3 1e-2 1 # run3
+python main.py 1e-3 1e-2 1 # run3
 python main.py 1e-3 1e-2 2  # 1505303699.9582024/
-#python main.py 1e-3 1e-3 1 # run5
+python main.py 1e-3 1e-3 1 # run5
 python main.py 1e-3 1e-3 2  # 1505304417.164329/  best
 python main.py 1e-4 1e-1 1 # 1505305392.1788018/
 python main.py 1e-4 1e-1 2 # 1505306107.8563206/
